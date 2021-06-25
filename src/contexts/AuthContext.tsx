@@ -1,5 +1,11 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
-import { auth, firebase } from "../services/firebase";
+import { auth, firebase } from '../services/firebase';
+
+
+type AuthContextType = {
+  user: User | undefined;
+  signInWithGoogle: () => Promise<void>;
+}
 
 type User = {
   id: string;
@@ -7,27 +13,22 @@ type User = {
   avatar: string;
 }
 
-type AuthContextType = {
-  user: User | undefined;
-  signInWithGoogle: () => Promise<void>;
-}
-
 type AuthContextProviderProps = {
-  children: ReactNode
+  children: ReactNode;
 }
 
-export const AuthContext = createContext({} as AuthContextType);
+export const AuthContext = createContext({} as AuthContextType)
 
-export function AuthContextProvider(props: AuthContextProviderProps) {
+export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [user, setUser] = useState<User>();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
       if (user) {
-        const { displayName, photoURL, uid } = user
+        const { displayName, photoURL, uid } = user;
 
         if (!displayName || !photoURL) {
-          throw new Error('Missing information from Google Account.')
+          throw new Error('Missing information from Google Account');
         }
 
         setUser({
@@ -39,7 +40,7 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
     })
 
     return () => {
-      unsubscribe();
+      unsubscribe()
     }
   }, [])
 
@@ -49,10 +50,10 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
     const result = await auth.signInWithPopup(provider);
 
     if (result.user) {
-      const { displayName, photoURL, uid } = result.user
+      const { displayName, photoURL, uid } = result.user;
 
       if (!displayName || !photoURL) {
-        throw new Error('Missing information from Google Account.')
+        throw new Error('Missing information from Google Account');
       }
 
       setUser({
@@ -65,7 +66,7 @@ export function AuthContextProvider(props: AuthContextProviderProps) {
 
   return (
     <AuthContext.Provider value={{ user, signInWithGoogle }}>
-      {props.children}
+      {children}
     </AuthContext.Provider>
-  );
+  )
 }
